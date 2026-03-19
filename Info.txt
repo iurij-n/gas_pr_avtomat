@@ -1,55 +1,11 @@
-2. «Магический» файл авторизации (auth.json)
+1. Авторизация (auth.json)
 
-Чтобы не заставлять бота каждый раз проходить круги ада с Госуслугами, мы один раз сохраним состояние браузера.
-
-Как сделать:
-Запустите специальную команду записи с сохранением состояния:
 PowerShell
 
 playwright codegen --save-storage=auth.json https://ej.sudrf.ru/
 
-Откроется браузер. Вы руками проходите авторизацию через ЕСИА. Как только увидите личный кабинет ГАС «Правосудие» — закрывайте браузер. У вас в папке появится файл auth.json.
+2. Запуск записи с загрузкой авторизации
 
-В коде бота теперь будете использовать его так:
-Python
-
-context = browser.new_context(storage_state="auth.json")
-
-Бот будет открывать сайт уже залогиненным.
-
-
-1. Запуск записи с загрузкой авторизации
-
-Выполните команду в терминале:
 PowerShell
 
-playwright codegen --load-storage=auth.json https://ej.sudrf.ru/
-
-Браузер откроется, и вы (если сессия жива) сразу увидите интерфейс авторизованного пользователя.
-
-
-
-Как сделать правильно:
-
-Выполните в терминале обновленную команду:
-PowerShell
-
-playwright codegen --load-storage=auth.json -o my_bot.py https://ej.sudrf.ru/
-
-
-
-Процедура закрытия окна выбора файла Windows
-
-import pygetwindow as gw
-import time
-
-def close_dialog_if_exists():
-    # Ждем максимум 3 секунды появления окна
-    for _ in range(6): 
-        # Ищем окно, заголовок которого обычно начинается с "Открытие"
-        windows = gw.getWindowsWithTitle('Открытие') 
-        if windows:
-            windows[0].activate() # Выводим на передний план
-            pyautogui.press('esc')
-            break
-        time.sleep(0.5)
+playwright codegen --load-storage=auth.json -o my_bot_temp.py https://ej.sudrf.ru/
