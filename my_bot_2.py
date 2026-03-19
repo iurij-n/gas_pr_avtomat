@@ -18,6 +18,7 @@ DRAFT_TARGET_STATUS = "В процессе создания (черновик)"
 GET_ELEMENT_TIMEOUT = 15000
 PAUSE_BETWEEN_ATTEMPTS = 2
 ALLOWED_EXTENSIONS = {".pdf",}
+DEBTOR_DATA_FILE = 'Должники_20260318_121822_prepared.xlsx'
 
 
 def close_dialog_if_exists():
@@ -385,7 +386,7 @@ if __name__ == '__main__':
         
 
         # Открываем книгу и активный лист
-        file_path = 'Должники_20260318_121822_prepared.xlsx'
+        file_path = DEBTOR_DATA_FILE
         max_retries = 3
         wb = openpyxl.load_workbook(file_path)
         sheet = wb.active
