@@ -5,20 +5,28 @@ import time
 import openpyxl
 from pathlib import Path
 
-try:
-    from creditor_data import CREDITOR_DATA
-except ImportError:
-    CREDITOR_DATA = dict()
 
-
-DRAFT_TARGET_TYPE = "Заявление о вынесении судебного приказа (дубликата)"
-DRAFT_TARGET_STATUS = "В процессе создания (черновик)"
-GET_ELEMENT_TIMEOUT = 15000
-PAUSE_BETWEEN_ATTEMPTS = 2
-ALLOWED_EXTENSIONS = {".pdf",}
-DEBTOR_DATA_FILE = 'Должники_20260318_121822_prepared.xlsx'
-SHARED_FILES_FOLDERS = ''
-MAX_RETRIES = 3
+DRAFT_TARGET_TYPE = "Заявление о вынесении судебного приказа (дубликата)"  # Тип документа удаляемого черновика
+DRAFT_TARGET_STATUS = "В процессе создания (черновик)"  # Статус удаляемого черновика
+GET_ELEMENT_TIMEOUT = 30000  # Таймаут ожидания загрузки страницы, мс
+PAUSE_BETWEEN_ATTEMPTS = 2  # Пауза между попытками составить заявление, сек
+ALLOWED_EXTENSIONS = {".pdf", }  # Сет разрешенных расширений для прикрепляемых файлов
+DEBTOR_DATA_FILE = ''  # Имя файла и данными для заполнения формы
+SHARED_FILES_FOLDERS = ''  # Папка с общими файлами досье
+AUTHORITY_CONFIRMATION_DOC = ''  # Доверенность
+MAX_RETRIES = 3  # Количество попыток составить заявление
+CREDITOR_DATA = {  # Данные кредитора
+    'NOTIFY_POSTAL_CODE': '305000',
+    'NOTIFY_ADDRESS': 'Курская область, г. Курск, ул. Марата, д. 21, этаж 2, помещение 1',
+    'CREDITOR_NAME': 'ООО «ПКО «Центр Альтернативного Финансирования»',
+    'CREDITOR_INN': '4632195224',
+    'CREDITOR_OGRN': '1144632011380',
+    'CREDITOR_KPP': '463201001',
+    'LEGAL_POSTAL_CODE': '305000',
+    'LEGAL_ADDRESS': 'Курская область, г. Курск, ул. Марата, д. 21, этаж 2, помещение 1',
+    'CREDITOR_EMAIL': 'info@alternativacentr.ru',
+    'CREDITOR_PHONE_NUMBER': '+79065730892',
+}
 
 
 def close_dialog_if_exists():
@@ -57,7 +65,7 @@ def delete_first_matching_draft(page):
 
     try:
         table_container = page.locator(".table-responsive")
-        table_container.wait_for(state="visible", timeout=15000)
+        table_container.wait_for(state="visible", timeout=GET_ELEMENT_TIMEOUT)
     except:
         return
 
@@ -74,7 +82,7 @@ def delete_first_matching_draft(page):
             if btn_delete.is_visible():
                 btn_delete.click()
                 confirm_btn = page.locator(".modal-content:has-text('Подтвердите удаление')").get_by_role("button", name="Удалить")
-                if confirm_btn.is_visible(timeout=2000):
+                if confirm_btn.is_visible(timeout=GET_ELEMENT_TIMEOUT):
                     time.sleep(0.5)
                     confirm_btn.click()
                     time.sleep(0.5)
@@ -101,10 +109,10 @@ def fill_form(page, debtor_data):
         page.get_by_role("button", name="Выбрать файл").dispatch_event("click")
 
     file_chooser = fc_info.value
-    file_chooser.set_files(CREDITOR_DATA.get('AUTHORITY_CONFIRMATION_DOC', r''))
+    file_chooser.set_files(AUTHORITY_CONFIRMATION_DOC)
     page.get_by_role("button", name="Добавить").click()
     close_dialog_if_exists()
-    
+
     # Кредитор
     page.get_by_role("button", name="Добавить заявителя").click()
     page.get_by_role("button", name="Юридическое лицо").click()
@@ -119,7 +127,7 @@ def fill_form(page, debtor_data):
     page.get_by_role("dialog", name="Данные заявителя").locator("#Email").fill(CREDITOR_DATA.get('CREDITOR_EMAIL', ''))
     page.get_by_role("dialog", name="Данные заявителя").locator("#Phone").fill(CREDITOR_DATA.get('CREDITOR_PHONE_NUMBER', ''))
     page.get_by_role("button", name="Сохранить").click()
-    
+
     # Должник
     page.get_by_role("button", name="Добавить участника").click()
     page.get_by_role("button", name="Физическое лицо").click()
@@ -186,7 +194,6 @@ def fill_form(page, debtor_data):
             else:
                 print(f"Пропущен (недопустимый формат): {item.name}")
 
-
     # Досье
     folder = Path(debtor_data.get('Путь_Досье', ''))
 
@@ -210,7 +217,7 @@ def fill_form(page, debtor_data):
             else:
                 print(f"Пропущен (недопустимый формат): {item.name}")
 
-    #Уплата госпошлины
+    # Уплата госпошлины
     page.get_by_role("checkbox", name="Квитанция об уплате государственной пошлины", exact=True).check()
     page.get_by_role("button", name="Добавить файл").nth(2).click()
     page.get_by_role("button", name="Выбрать файл").click()
@@ -221,22 +228,21 @@ def fill_form(page, debtor_data):
     page.get_by_role("button", name="Добавить").click()
     close_dialog_if_exists()
     time.sleep(0.5)
-    
-    #Согласия
+
+    # Согласия
     page.get_by_role("checkbox", name="Согласен на получение уведомлений на адрес электронной почты: iurij.").check()
     page.get_by_role("checkbox", name="Согласен на получение судебной корреспонденции на адрес, указанный для направлен").check()
 
-
-    #Сформировать обращение
+    # Сформировать обращение
     page.pause()
     # page.get_by_role("button", name="Сформировать обращение").click()
-    
-    #Подать
-    #page.get_by_role("button", name="Отправить").click()
+
+    # Подать
+    # page.get_by_role("button", name="Отправить").click()
     page.pause()
 
     try:
-        page.wait_for_selector('text="Ваше заявление успешно отправлено"', timeout=30000)
+        page.wait_for_selector('text="Ваше заявление успешно отправлено"', timeout=GET_ELEMENT_TIMEOUT)
     except:
         pass
     else:
@@ -245,6 +251,9 @@ def fill_form(page, debtor_data):
 
 
 if __name__ == '__main__':
+    if not DEBTOR_DATA_FILE or not SHARED_FILES_FOLDERS or not AUTHORITY_CONFIRMATION_DOC:
+        print('Ошибка. Значение констанот не указано.')
+
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(headless=False, slow_mo=300)
         context = browser.new_context(storage_state="auth.json")

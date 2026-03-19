@@ -45,3 +45,5 @@ ENV/
 
 # Byte-compiled
 *.pyc
+
+auth.json
