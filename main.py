@@ -4,6 +4,7 @@ import pyautogui
 import time
 import openpyxl
 from pathlib import Path
+import re
 
 
 DRAFT_TARGET_TYPE = "Заявление о вынесении судебного приказа (дубликата)"  # Тип документа удаляемого черновика
@@ -230,7 +231,7 @@ def fill_form(page, debtor_data):
     time.sleep(0.5)
 
     # Согласия
-    page.get_by_role("checkbox", name="Согласен на получение уведомлений на адрес электронной почты: iurij.").check()
+    page.get_by_role("checkbox", name=re.compile(r"^Согласен на получение уведомлений на адрес электронной почты")).check()
     page.get_by_role("checkbox", name="Согласен на получение судебной корреспонденции на адрес, указанный для направлен").check()
 
     # Сформировать обращение
@@ -242,7 +243,8 @@ def fill_form(page, debtor_data):
     page.pause()
 
     try:
-        page.wait_for_selector('text="Ваше заявление успешно отправлено"', timeout=GET_ELEMENT_TIMEOUT)
+        # page.wait_for_selector('text="Ваше заявление успешно отправлено"', timeout=GET_ELEMENT_TIMEOUT)
+        page.wait_for_selector('p:has-text("Ваше заявление успешно отправлено")', timeout=GET_ELEMENT_TIMEOUT)
     except:
         pass
     else:
