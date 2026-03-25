@@ -28,6 +28,7 @@ CREDITOR_DATA = {  # Данные кредитора
     'CREDITOR_EMAIL': 'info@alternativacentr.ru',
     'CREDITOR_PHONE_NUMBER': '+79065730892',
 }
+USE_UCEP = True
 
 
 def close_dialog_if_exists():
@@ -42,6 +43,20 @@ def close_dialog_if_exists():
                 pyautogui.press('esc')
                 break
         time.sleep(0.5)
+
+
+def attach_ucep(page, file_path):
+    ucep_file_path = f'{file_path}.sig'
+    if not Path(ucep_file_path).is_file():
+        return
+
+    with page.expect_file_chooser() as fc_info:
+        page.get_by_role("button", name="Прикрепить файл УКЭП").dispatch_event("click")
+
+    file_chooser = fc_info.value
+    file_chooser.set_files(ucep_file_path)
+
+    close_dialog_if_exists()
 
 
 def get_element(page, identificator):
@@ -111,8 +126,10 @@ def fill_form(page, debtor_data):
 
     file_chooser = fc_info.value
     file_chooser.set_files(AUTHORITY_CONFIRMATION_DOC)
-    page.get_by_role("button", name="Добавить").click()
     close_dialog_if_exists()
+    if USE_UCEP:
+        attach_ucep(page, AUTHORITY_CONFIRMATION_DOC)
+    page.get_by_role("button", name="Добавить").click()
 
     # Кредитор
     page.get_by_role("button", name="Добавить заявителя").click()
@@ -153,7 +170,7 @@ def fill_form(page, debtor_data):
     page.get_by_role("dialog", name="Данные участника процесса").locator("#IssuerId").fill(debtor_data.get('ПаспортКодПодразделения', ''))
     page.get_by_role("checkbox", name="Полные данные участника процесса неизвестны").check()
     page.get_by_role("button", name="Сохранить").click()
-    
+
     # Субебный участок
     page.get_by_role("button", name="Выбрать суд").click()
     page.get_by_label("Регион:").select_option(debtor_data.get('РегионКод', ''))
@@ -169,8 +186,10 @@ def fill_form(page, debtor_data):
 
     file_chooser = fc_info.value
     file_chooser.set_files(debtor_data.get('Путь_Скан', ''))
-    page.get_by_role("button", name="Добавить").click()
     close_dialog_if_exists()
+    if USE_UCEP:
+        attach_ucep(page, AUTHORITY_CONFIRMATION_DOC)
+    page.get_by_role("button", name="Добавить").click()
 
     # Общие файлы досье
     folder = Path(SHARED_FILES_FOLDERS)
@@ -189,8 +208,10 @@ def fill_form(page, debtor_data):
                     page.get_by_role("button", name="Выбрать файл").dispatch_event("click")
                 file_chooser = fc_info.value
                 file_chooser.set_files(item.resolve())
-                page.get_by_role("button", name="Добавить").click()
                 close_dialog_if_exists()
+                if USE_UCEP:
+                    attach_ucep(page, AUTHORITY_CONFIRMATION_DOC)
+                page.get_by_role("button", name="Добавить").click()
                 time.sleep(0.5)
             else:
                 print(f"Пропущен (недопустимый формат): {item.name}")
@@ -212,8 +233,10 @@ def fill_form(page, debtor_data):
                     page.get_by_role("button", name="Выбрать файл").dispatch_event("click")
                 file_chooser = fc_info.value
                 file_chooser.set_files(item.resolve())
-                page.get_by_role("button", name="Добавить").click()
                 close_dialog_if_exists()
+                if USE_UCEP:
+                    attach_ucep(page, AUTHORITY_CONFIRMATION_DOC)
+                page.get_by_role("button", name="Добавить").click()
                 time.sleep(0.5)
             else:
                 print(f"Пропущен (недопустимый формат): {item.name}")
@@ -226,8 +249,10 @@ def fill_form(page, debtor_data):
         page.get_by_role("button", name="Выбрать файл").dispatch_event("click")
     file_chooser = fc_info.value
     file_chooser.set_files(debtor_data.get('Путь_Платежное_поручение', ''))
-    page.get_by_role("button", name="Добавить").click()
     close_dialog_if_exists()
+    if USE_UCEP:
+        attach_ucep(page, AUTHORITY_CONFIRMATION_DOC)
+    page.get_by_role("button", name="Добавить").click()
     time.sleep(0.5)
 
     # Согласия
