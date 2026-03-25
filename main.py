@@ -265,11 +265,10 @@ def fill_form(page, debtor_data):
 
     # Подать
     # page.get_by_role("button", name="Отправить").click()
-    page.pause()
 
     try:
-        # page.wait_for_selector('text="Ваше заявление успешно отправлено"', timeout=GET_ELEMENT_TIMEOUT)
-        page.wait_for_selector('p:has-text("Ваше заявление успешно отправлено")', timeout=GET_ELEMENT_TIMEOUT)
+        page.wait_for_selector('text="Ваше заявление успешно отправлено"', timeout=GET_ELEMENT_TIMEOUT)
+        # page.wait_for_selector('p:has-text("Ваше заявление успешно отправлено")', timeout=GET_ELEMENT_TIMEOUT)
     except:
         pass
     else:
