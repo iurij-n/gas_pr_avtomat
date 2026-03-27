@@ -32,7 +32,7 @@ USE_UCEP = True
 
 
 def extract_application_data(page):
-    # page.locator("#ticket").wait_for(state="visible", timeout=10000)
+    page.locator("#ticket").wait_for(state="visible", timeout=10000)
 
     date_time = page.locator(
         "div.form-group:has(label:has-text('Дата и время отправки')) div[style]"
