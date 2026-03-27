@@ -31,6 +31,20 @@ CREDITOR_DATA = {  # Данные кредитора
 USE_UCEP = True
 
 
+def extract_application_data(page):
+    # page.locator("#ticket").wait_for(state="visible", timeout=10000)
+
+    date_time = page.locator(
+        "div.form-group:has(label:has-text('Дата и время отправки')) div[style]"
+    ).inner_text()
+
+    app_number = page.locator(
+        "div.form-group:has(label:has-text('Номер')) div[style]"
+    ).inner_text()
+
+    return app_number, date_time
+
+
 def close_dialog_if_exists():
     for _ in range(20):
         windows = gw.getWindowsWithTitle('Открытие')
@@ -298,6 +312,20 @@ if __name__ == '__main__':
             headers["Статус"] = status_col_idx - 1
         else:
             status_col_idx = headers["Статус"] + 1
+            
+        if "Дата заявки" not in headers:
+            app_date_col_idx = len(headers) + 2
+            sheet.cell(row=1, column=app_date_col_idx, value="Дата заявки")
+            headers["Дата заявки"] = app_date_col_idx - 1
+        else:
+            app_date_col_idx = headers["Дата заявки"] + 1
+            
+        if "Номер заявки" not in headers:
+            app_number_col_idx = len(headers) + 3
+            sheet.cell(row=1, column=app_number_col_idx, value="Номер заявки")
+            headers["Номер заявки"] = app_number_col_idx - 1
+        else:
+            app_number_col_idx = headers["Номер заявки"] + 1
 
         for row_idx, row in enumerate(sheet.iter_rows(min_row=2), start=2):
             debtor_data = {
@@ -337,7 +365,10 @@ if __name__ == '__main__':
                     time.sleep(PAUSE_BETWEEN_ATTEMPTS)
 
             if success:
+                app_number, date_time = extract_application_data(page)
                 sheet.cell(row=row_idx, column=status_col_idx, value="Отправлено")
+                sheet.cell(row=row_idx, column=app_date_col_idx, value=date_time)
+                sheet.cell(row=row_idx, column=app_number_col_idx, value=app_number)
                 print(f"Строка {row_idx}: УСПЕХ")
             else:
                 sheet.cell(row=row_idx, column=status_col_idx, value="Не удалось отправить")
