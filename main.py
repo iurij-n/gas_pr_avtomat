@@ -202,7 +202,7 @@ def fill_form(page, debtor_data):
     file_chooser.set_files(debtor_data.get('Путь_Скан', ''))
     close_dialog_if_exists()
     if USE_UCEP:
-        attach_ucep(page, AUTHORITY_CONFIRMATION_DOC)
+        attach_ucep(page, debtor_data.get('Путь_Скан', ''))
     page.get_by_role("button", name="Добавить").click()
 
     # Общие файлы досье
@@ -224,7 +224,7 @@ def fill_form(page, debtor_data):
                 file_chooser.set_files(item.resolve())
                 close_dialog_if_exists()
                 if USE_UCEP:
-                    attach_ucep(page, AUTHORITY_CONFIRMATION_DOC)
+                    attach_ucep(page, item.resolve())
                 page.get_by_role("button", name="Добавить").click()
                 time.sleep(0.5)
             else:
@@ -249,7 +249,7 @@ def fill_form(page, debtor_data):
                 file_chooser.set_files(item.resolve())
                 close_dialog_if_exists()
                 if USE_UCEP:
-                    attach_ucep(page, AUTHORITY_CONFIRMATION_DOC)
+                    attach_ucep(page, item.resolve())
                 page.get_by_role("button", name="Добавить").click()
                 time.sleep(0.5)
             else:
